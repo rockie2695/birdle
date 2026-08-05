@@ -75,19 +75,28 @@ class _GamePageState extends State<GamePage> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
-        spacing: 5.0,
         children: [
-          for (final guess in _game.guesses)
+          for (var guess in _game.guesses)
             Row(
-              spacing: 5.0,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                for (final letter in guess) Tile(letter.char, letter.type),
+                for (var letter in guess)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 2.5,
+                      vertical: 2.5,
+                    ),
+                    child: Tile(letter.char, letter.type),
+                  ),
               ],
             ),
           GuessInput(
-            onSubmitGuess: (guess) {
-              // TODO, handle guess
-              print(guess); // Temporary
+            onSubmitGuess: (String guess) {
+              print('guess = $guess');
+              setState(() {
+                // NEW
+                _game.guess(guess);
+              });
             },
           ),
         ],
