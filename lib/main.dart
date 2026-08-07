@@ -31,7 +31,9 @@ class Tile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // NEW
-    return Container(
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 500),
+      curve: Curves.bounceIn, // NEW
       width: 60,
       height: 60,
       decoration: BoxDecoration(
@@ -66,6 +68,24 @@ class GamePage extends StatefulWidget {
 class _GamePageState extends State<GamePage> {
   final Game _game = Game();
 
+  void _submitGuess(String guess) {
+    print('guess = $guess');
+
+    if (!_game.isLegalGuess(guess)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Guess is not in the allowed word list.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _game.guess(guess);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     for (final guess in _game.guesses) {
@@ -91,13 +111,7 @@ class _GamePageState extends State<GamePage> {
               ],
             ),
           GuessInput(
-            onSubmitGuess: (String guess) {
-              print('guess = $guess');
-              setState(() {
-                // NEW
-                _game.guess(guess);
-              });
-            },
+            onSubmitGuess: _submitGuess,
           ),
         ],
       ),
@@ -114,8 +128,20 @@ class GuessInput extends StatelessWidget {
 
   final FocusNode _focusNode = FocusNode();
 
-  void _onSubmit() {
-    onSubmitGuess(_textEditingController.text);
+  void _submitGuess(BuildContext context) {
+    final guess = _textEditingController.text.trim();
+    if (guess.length != 5) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Guess must be exactly 5 letters.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      _focusNode.requestFocus();
+      return;
+    }
+
+    onSubmitGuess(guess);
     _textEditingController.clear();
     _focusNode.requestFocus();
   }
@@ -138,7 +164,7 @@ class GuessInput extends StatelessWidget {
               ),
               controller: _textEditingController,
               onSubmitted: (value) {
-                _onSubmit();
+                _submitGuess(context);
               },
             ),
           ),
@@ -146,7 +172,7 @@ class GuessInput extends StatelessWidget {
         IconButton(
           padding: EdgeInsets.zero,
           icon: const Icon(Icons.arrow_circle_up),
-          onPressed: _onSubmit,
+          onPressed: () => _submitGuess(context),
         ),
       ],
     );
